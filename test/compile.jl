@@ -88,7 +88,7 @@ try
     # the module doesn't reload from the image:
     try
         redirected_stderr()
-        @test nothing !== Base._require_from_serialized(myid(), Foo_module, #=broadcast-load=#false)
+        @test isa(Base._require_from_serialized(myid(), Foo_module, cachefile, #=broadcast-load=#false), Array{Any,1})
     finally
         redirect_stderr(olderr)
     end
@@ -101,10 +101,9 @@ try
         @test stringmime("text/plain", Base.Docs.doc(Foo.foo)) == "foo function\n"
         @test stringmime("text/plain", Base.Docs.doc(Foo.Bar.bar)) == "bar function\n"
 
-        deps = Base.cache_dependencies(cachefile)
-        @test sort(deps[1]) == map(s -> (s, Base.module_uuid(eval(s))),
-                                   [:Base,:Core,:Main])
-        @test map(x -> x[1], sort(deps[2])) == [Foo_file,joinpath(dir,"bar.jl"),joinpath(dir,"foo.jl")]
+        modules, deps = Base.parse_cache_header(cachefile)
+        @test modules == Dict(Foo_module => Base.module_uuid(Foo))
+        @test map(x -> x[1],  sort(deps)) == [Foo_file, joinpath(dir, "bar.jl"), joinpath(dir, "foo.jl")]
 
         @test current_task()(0x01, 0x4000, 0x30031234) == 2
         @test nothing(0x01, 0x4000, 0x30031234) == 52
@@ -159,13 +158,14 @@ try
           """)
 
     Base.compilecache("FooBar")
-    sleep(2)
     @test isfile(joinpath(dir, "FooBar.ji"))
+    @test !isdefined(Main, :FooBar)
 
     touch(FooBar_file)
     insert!(Base.LOAD_CACHE_PATH, 1, dir2)
-    Base.recompile_stale(:FooBar, joinpath(dir, "FooBar.ji"))
-    sleep(2)
+    @test Base.stale_cachefile(FooBar_file, joinpath(dir, "FooBar.ji"))
+    reload("FooBar")
+    @test isdefined(Main, :FooBar)
     @test isfile(joinpath(dir2, "FooBar.ji"))
     @test Base.stale_cachefile(FooBar_file, joinpath(dir, "FooBar.ji"))
     @test !Base.stale_cachefile(FooBar_file, joinpath(dir2, "FooBar.ji"))
