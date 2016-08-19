@@ -24,19 +24,7 @@ if is_unix()
     const path_dir_splitter = r"^(.*?)(/+)([^/]*)$"
     const path_ext_splitter = r"^((?:.*/)?(?:\.|[^/\.])[^/]*?)(\.[^/\.]*|)$"
 
-
-    @doc """
-        splitdrive(path::AbstractString) -> (AbstractString, AbstractString)
-
-    On Windows, split a path into the drive letter part and the path part. On Unix systems, the
-    first component is always the empty string.
-    """ ->
     splitdrive(path::String) = ("",path)
-    @doc """
-        homedir() -> AbstractString
-
-    Return the current user's home directory.
-    """ ->
     homedir() = ENV["HOME"]
 elseif is_windows()
     const path_separator    = "\\"
@@ -46,25 +34,31 @@ elseif is_windows()
     const path_dir_splitter = r"^(.*?)([/\\]+)([^/\\]*)$"
     const path_ext_splitter = r"^((?:.*[/\\])?(?:\.|[^/\\\.])[^/\\]*?)(\.[^/\\\.]*|)$"
 
-    @doc """
-        splitdrive(path::AbstractString) -> (AbstractString, AbstractString)
-
-    On Windows, split a path into the drive letter part and the path part. On Unix systems, the
-    first component is always the empty string.
-    """ ->
     function splitdrive(path::String)
         m = match(r"^(\w+:|\\\\\w+\\\w+|\\\\\?\\UNC\\\w+\\\w+|\\\\\?\\\w+:|)(.*)$", path)
         String(m.captures[1]), String(m.captures[2])
     end
-    @doc """
-        homedir() -> AbstractString
-
-    Return the current user's home directory.
-    """ ->
     homedir() = get(ENV,"HOME",string(ENV["HOMEDRIVE"],ENV["HOMEPATH"]))
 else
     error("path primitives for this OS need to be defined")
 end
+
+
+"""
+    splitdrive(path::AbstractString) -> (AbstractString, AbstractString)
+
+On Windows, split a path into the drive letter part and the path part. On Unix systems, the
+first component is always the empty string.
+"""
+splitdrive(path::AbstractString)
+
+"""
+    homedir() -> AbstractString
+
+Return the current user's home directory.
+"""
+homedir()
+
 
 """
     isabspath(path::AbstractString) -> Bool
@@ -249,11 +243,6 @@ abspath(a::String) = normpath(isabspath(a) ? a : joinpath(pwd(),a))
 abspath(a::AbstractString, b::AbstractString...) = abspath(joinpath(a,b...))
 
 if is_windows()
-@doc """
-    realpath(path::AbstractString) -> AbstractString
-
-Canonicalize a path by expanding symbolic links and removing "." and ".." entries.
-""" ->
 function realpath(path::AbstractString)
     p = cwstring(path)
     buf = zeros(UInt16, length(p))
@@ -283,11 +272,6 @@ function longpath(path::AbstractString)
 end
 
 else # !windows
-@doc """
-    realpath(path::AbstractString) -> AbstractString
-
-Canonicalize a path by expanding symbolic links and removing "." and ".." entries.
-""" ->
 function realpath(path::AbstractString)
     p = ccall(:realpath, Ptr{UInt8}, (Cstring, Ptr{UInt8}), path, C_NULL)
     systemerror(:realpath, p == C_NULL)
@@ -295,19 +279,18 @@ function realpath(path::AbstractString)
 end
 end # os-test
 
-if is_windows()
-@doc """
-    expanduser(path::AbstractString) -> AbstractString
 
-On Unix systems, replace a tilde character at the start of a path with the current user's home directory.
-""" ->
+"""
+    realpath(path::AbstractString) -> AbstractString
+
+Canonicalize a path by expanding symbolic links and removing "." and ".." entries.
+"""
+realpath(path::AbstractString)
+
+
+if is_windows()
 expanduser(path::AbstractString) = path # on windows, ~ means "temporary file"
 else
-@doc """
-    expanduser(path::AbstractString) -> AbstractString
-
-On Unix systems, replace a tilde character at the start of a path with the current user's home directory.
-""" ->
 function expanduser(path::AbstractString)
     i = start(path)
     c, i = next(path,i)
@@ -318,6 +301,15 @@ function expanduser(path::AbstractString)
     throw(ArgumentError("~user tilde expansion not yet implemented"))
 end
 end
+
+
+"""
+    expanduser(path::AbstractString) -> AbstractString
+
+On Unix systems, replace a tilde character at the start of a path with the current user's home directory.
+"""
+expanduser(path::AbstractString)
+
 
 """
     relpath(path::AbstractString, startpath::AbstractString = ".") -> AbstractString

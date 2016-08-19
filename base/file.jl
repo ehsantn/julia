@@ -252,11 +252,6 @@ end
 
 if is_windows()
 
-@doc """
-    tempdir()
-
-Obtain the path of a temporary directory (possibly shared with other processes).
-""" ->
 function tempdir()
     temppath = Array{UInt16}(32767)
     lentemppath = ccall(:GetTempPathW,stdcall,UInt32,(UInt32,Ptr{UInt16}),length(temppath),temppath)
@@ -266,11 +261,6 @@ function tempdir()
     resize!(temppath,lentemppath)
     return transcode(String, temppath)
 end
-@doc """
-    tempname()
-
-Generate a unique temporary file path.
-""" ->
 tempname(uunique::UInt32=UInt32(0)) = tempname(tempdir(), uunique)
 const temp_prefix = cwstring("jl_")
 function tempname(temppath::AbstractString,uunique::UInt32)
@@ -285,22 +275,11 @@ function tempname(temppath::AbstractString,uunique::UInt32)
     return transcode(String, tname)
 end
 
-@doc """
-    mktemp(parent=tempdir())
-
-Returns `(path, io)`, where `path` is the path of a new temporary file in `parent` and `io`
-is an open file object for this path.
-""" ->
 function mktemp(parent=tempdir())
     filename = tempname(parent, UInt32(0))
     return (filename, Base.open(filename, "r+"))
 end
 
-@doc """
-    mktempdir(parent=tempdir())
-
-Create a temporary directory in the `parent` directory and return its path.
-""" ->
 function mktempdir(parent=tempdir())
     seed::UInt32 = rand(UInt32)
     while true
@@ -319,11 +298,6 @@ end
 
 else # !windows
 # Obtain a temporary filename.
-@doc """
-    tempname()
-
-Generate a unique temporary file path.
-""" ->
 function tempname()
     d = get(ENV, "TMPDIR", C_NULL) # tempnam ignores TMPDIR on darwin
     p = ccall(:tempnam, Cstring, (Cstring,Cstring), d, :julia)
@@ -334,20 +308,9 @@ function tempname()
 end
 
 # Obtain a temporary directory's path.
-@doc """
-    tempdir()
-
-Obtain the path of a temporary directory (possibly shared with other processes).
-""" ->
 tempdir() = dirname(tempname())
 
 # Create and return the name of a temporary file along with an IOStream
-@doc """
-    mktemp(parent=tempdir())
-
-Returns `(path, io)`, where `path` is the path of a new temporary file in `parent` and `io`
-is an open file object for this path.
-""" ->
 function mktemp(parent=tempdir())
     b = joinpath(parent, "tmpXXXXXX")
     p = ccall(:mkstemp, Int32, (Cstring,), b) # modifies b
@@ -356,11 +319,6 @@ function mktemp(parent=tempdir())
 end
 
 # Create and return the name of a temporary directory
-@doc """
-    mktempdir(parent=tempdir())
-
-Create a temporary directory in the `parent` directory and return its path.
-""" ->
 function mktempdir(parent=tempdir())
     b = joinpath(parent, "tmpXXXXXX")
     p = ccall(:mkdtemp, Cstring, (Cstring,), b)
@@ -369,6 +327,37 @@ function mktempdir(parent=tempdir())
 end
 
 end # os-test
+
+
+"""
+    tempdir()
+
+Obtain the path of a temporary directory (possibly shared with other processes).
+"""
+tempdir()
+
+"""
+    tempname()
+
+Generate a unique temporary file path.
+"""
+tempname()
+
+"""
+    mktemp(parent=tempdir())
+
+Returns `(path, io)`, where `path` is the path of a new temporary file in `parent` and `io`
+is an open file object for this path.
+"""
+mktemp(parent)
+
+"""
+    mktempdir(parent=tempdir())
+
+Create a temporary directory in the `parent` directory and return its path.
+"""
+mktempdir(parent)
+
 
 """
     mktemp(f::Function, parent=tempdir())

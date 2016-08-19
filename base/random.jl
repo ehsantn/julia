@@ -30,11 +30,6 @@ type Close1Open2 <: FloatInterval end
 
 if is_windows()
 
-    @doc """
-        RandomDevice()
-
-    Create a `RandomDevice` RNG object. Two such objects will always generate different streams of random numbers.
-    """ ->
     immutable RandomDevice <: AbstractRNG
         buffer::Vector{UInt128}
 
@@ -48,11 +43,6 @@ if is_windows()
 
     rand!{T<:Union{Bool, Base.BitInteger}}(rd::RandomDevice, A::Array{T}) = (win32_SystemFunction036!(A); A)
 else # !windows
-    @doc """
-        RandomDevice()
-
-    Create a `RandomDevice` RNG object. Two such objects will always generate different streams of random numbers.
-    """ ->
     immutable RandomDevice <: AbstractRNG
         file::IOStream
         unlimited::Bool
@@ -63,6 +53,15 @@ else # !windows
     rand{ T<:Union{Bool, Base.BitInteger}}(rd::RandomDevice,  ::Type{T})  = read( rd.file, T)
     rand!{T<:Union{Bool, Base.BitInteger}}(rd::RandomDevice, A::Array{T}) = read!(rd.file, A)
 end # os-test
+
+
+"""
+    RandomDevice()
+
+Create a `RandomDevice` RNG object. Two such objects will always generate different streams of random numbers.
+"""
+RandomDevice
+
 
 rand(rng::RandomDevice, ::Type{Close1Open2}) =
     reinterpret(Float64, 0x3ff0000000000000 | rand(rng, UInt64) & 0x000fffffffffffff)

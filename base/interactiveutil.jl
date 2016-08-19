@@ -116,21 +116,11 @@ less(file, line::Integer) = error("could not find source file for function")
 # clipboard copy and paste
 
 if is_apple()
-    @doc """
-        clipboard(x)
-
-    Send a printed form of `x` to the operating system clipboard ("copy").
-    """ ->
     function clipboard(x)
         open(pipeline(`pbcopy`, stderr=STDERR), "w") do io
             print(io, x)
         end
     end
-    @doc """
-        clipboard() -> AbstractString
-
-    Return a string with the contents of the operating system clipboard ("paste").
-    """ ->
     clipboard() = readstring(`pbpaste`)
 
 elseif is_linux()
@@ -143,11 +133,6 @@ elseif is_linux()
         end
         error("no clipboard command found, please install xsel or xclip")
     end
-    @doc """
-        clipboard(x)
-
-    Send a printed form of `x` to the operating system clipboard ("copy").
-    """ ->
     function clipboard(x)
         c = clipboardcmd()
         cmd = c == :xsel  ? `xsel --nodetach --input --clipboard` :
@@ -157,11 +142,6 @@ elseif is_linux()
             print(io, x)
         end
     end
-    @doc """
-        clipboard() -> AbstractString
-
-    Return a string with the contents of the operating system clipboard ("paste").
-    """ ->
     function clipboard()
         c = clipboardcmd()
         cmd = c == :xsel  ? `xsel --nodetach --output --clipboard` :
@@ -190,17 +170,7 @@ elseif is_windows()
         systemerror(:SetClipboardData, pdata!=p)
         ccall((:CloseClipboard, "user32"), stdcall, Void, ())
     end
-    @doc """
-        clipboard(x)
-
-    Send a printed form of `x` to the operating system clipboard ("copy").
-    """ ->
     clipboard(x) = clipboard(sprint(io->print(io,x))::String)
-    @doc """
-        clipboard() -> AbstractString
-
-    Return a string with the contents of the operating system clipboard ("paste").
-    """ ->
     function clipboard()
         systemerror(:OpenClipboard, 0==ccall((:OpenClipboard, "user32"), stdcall, Cint, (Ptr{Void},), C_NULL))
         pdata = ccall((:GetClipboardData, "user32"), stdcall, Ptr{UInt16}, (UInt32,), 13)
@@ -220,6 +190,22 @@ elseif is_windows()
 else
     clipboard(x="") = error("`clipboard` function not implemented for $(Sys.KERNEL)")
 end
+
+
+"""
+    clipboard(x)
+
+Send a printed form of `x` to the operating system clipboard ("copy").
+"""
+clipboard(x)
+
+"""
+    clipboard() -> AbstractString
+
+Return a string with the contents of the operating system clipboard ("paste").
+"""
+clipboard()
+
 
 # system information
 
@@ -567,15 +553,6 @@ end
 
 downloadcmd = nothing
 if is_windows()
-    @doc """
-        download(url::AbstractString, [localfile::AbstractString])
-
-    Download a file from the given url, optionally renaming it to the given local file name.
-    Note that this function relies on the availability of external tools such as `curl`, `wget`
-    or `fetch` to download the file and is provided for convenience. For production use or
-    situations in which more options are needed, please use a package that provides the desired
-    functionality instead.
-    """ ->
     function download(url::AbstractString, filename::AbstractString)
         res = ccall((:URLDownloadToFileW,:urlmon),stdcall,Cuint,
                     (Ptr{Void},Cwstring,Cwstring,Cuint,Ptr{Void}),C_NULL,url,filename,0,C_NULL)
@@ -585,15 +562,6 @@ if is_windows()
         filename
     end
 else
-    @doc """
-        download(url::AbstractString, [localfile::AbstractString])
-
-    Download a file from the given url, optionally renaming it to the given local file name.
-    Note that this function relies on the availability of external tools such as `curl`, `wget`
-    or `fetch` to download the file and is provided for convenience. For production use or
-    situations in which more options are needed, please use a package that provides the desired
-    functionality instead.
-    """ ->
     function download(url::AbstractString, filename::AbstractString)
         global downloadcmd
         if downloadcmd === nothing
@@ -620,6 +588,17 @@ function download(url::AbstractString)
     filename = tempname()
     download(url, filename)
 end
+
+"""
+    download(url::AbstractString, [localfile::AbstractString])
+
+Download a file from the given url, optionally renaming it to the given local file name.
+Note that this function relies on the availability of external tools such as `curl`, `wget`
+or `fetch` to download the file and is provided for convenience. For production use or
+situations in which more options are needed, please use a package that provides the desired
+functionality instead.
+"""
+download(url, filename)
 
 # workspace management
 

@@ -199,58 +199,48 @@ the value `0x01020304`.
 const ENDIAN_BOM = reinterpret(UInt32,UInt8[1:4;])[1]
 
 if ENDIAN_BOM == 0x01020304
-    @doc """
-        ntoh(x)
-
-    Converts the endianness of a value from Network byte order (big-endian) to that used by the Host.
-    """ ->
     ntoh(x) = x
-    @doc """
-        hton(x)
-
-    Converts the endianness of a value from that used by the Host to Network byte order (big-endian).
-    """ ->
     hton(x) = x
-    @doc """
-        ltoh(x)
-
-    Converts the endianness of a value from Little-endian to that used by the Host.
-    """ ->
     ltoh(x) = bswap(x)
-    @doc """
-        htol(x)
-
-    Converts the endianness of a value from that used by the Host to Little-endian.
-    """ ->
     htol(x) = bswap(x)
 elseif ENDIAN_BOM == 0x04030201
-    @doc """
-        ntoh(x)
-
-    Converts the endianness of a value from Network byte order (big-endian) to that used by the Host.
-    """ ->
     ntoh(x) = bswap(x)
-    @doc """
-        hton(x)
-
-    Converts the endianness of a value from that used by the Host to Network byte order (big-endian).
-    """ ->
     hton(x) = bswap(x)
-    @doc """
-        ltoh(x)
-
-    Converts the endianness of a value from Little-endian to that used by the Host.
-    """ ->
     ltoh(x) = x
-    @doc """
-        htol(x)
-
-    Converts the endianness of a value from that used by the Host to Little-endian.
-    """ ->
     htol(x) = x
 else
     error("seriously? what is this machine?")
 end
+
+
+"""
+    ntoh(x)
+
+Converts the endianness of a value from Network byte order (big-endian) to that used by the Host.
+"""
+ntoh(x)
+
+"""
+    hton(x)
+
+Converts the endianness of a value from that used by the Host to Network byte order (big-endian).
+"""
+hton(x)
+
+"""
+    ltoh(x)
+
+Converts the endianness of a value from Little-endian to that used by the Host.
+"""
+ltoh(x)
+
+"""
+    htol(x)
+
+Converts the endianness of a value from that used by the Host to Little-endian.
+"""
+htol(x)
+
 
 """
     isreadonly(stream) -> Bool
