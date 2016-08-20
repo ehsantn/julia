@@ -4484,3 +4484,15 @@ for (f,g) in ((:asin,:sin), (:acos,:cos))
     f18085(::Type{Val{f}},x...) = map(x->2gx(x), f18085(Val{g},x...))
 end
 @test f18085(Val{:asin},3) === (0.0,)
+
+# SSA value where the assignment is after the user in syntactic order
+let f = function(a, b)
+    @goto a
+    @label b
+    return j[1] + j[2] * 2
+    @label a
+    j = (a, b)
+    @goto b
+end
+    @test f(1, 2) == 5
+end
