@@ -324,12 +324,6 @@ General I/O
 
    Create a pipe to which all C and Julia level :obj:`STDOUT` output will be redirected. Returns a tuple ``(rd, wr)`` representing the pipe ends. Data written to :obj:`STDOUT` may now be read from the ``rd`` end of the pipe. The ``wr`` end is given for convenience in case the old :obj:`STDOUT` object was cached by the user and needs to be replaced elsewhere.
 
-.. function:: redirect_stdout([stream]) -> (rd, wr)
-
-   .. Docstring generated from Julia source
-
-   Create a pipe to which all C and Julia level :obj:`STDOUT` output will be redirected. Returns a tuple ``(rd, wr)`` representing the pipe ends. Data written to :obj:`STDOUT` may now be read from the ``rd`` end of the pipe. The ``wr`` end is given for convenience in case the old :obj:`STDOUT` object was cached by the user and needs to be replaced elsewhere.
-
 .. function:: redirect_stderr([stream]) -> (rd, wr)
 
    .. Docstring generated from Julia source
